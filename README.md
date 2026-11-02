@@ -1,5 +1,7 @@
 # Pocket Blocks
 
+[![CI](https://github.com/qpernil/pocket-blocks/actions/workflows/ci.yml/badge.svg)](https://github.com/qpernil/pocket-blocks/actions/workflows/ci.yml)
+
 A small native iPhone falling-block game built with SwiftUI. No dependencies, accounts, network access, or purchases.
 
 Developed by Per Nilsson with assistance from OpenAI Codex.
@@ -38,6 +40,20 @@ From the project directory:
 mkdir -p build
 swiftc PocketBlocks/GameEngine.swift Tests/EngineTests.swift -o build/engine-tests
 ./build/engine-tests
+```
+
+## Continuous integration
+
+The [CI workflow](https://github.com/qpernil/pocket-blocks/actions/workflows/ci.yml) runs on pushes to `main`, pull requests, and manual requests. Documentation-only changes skip automatic runs, and superseded runs are canceled.
+
+A standard Apple silicon GitHub-hosted runner (`xcode-27`) uses Xcode 27.1 to run the engine checks, validate all generated sound variants without audio playback, and build simulator and unsigned iPhone Release apps. No Apple account, signing certificate, or provisioning profile is needed. Each run includes a check summary; failure logs are retained for seven days. External actions are pinned to immutable commits, and the workflow token has read-only access to repository contents.
+
+Run the audio checks locally on a Mac with Xcode:
+
+```sh
+mkdir -p build
+swiftc PocketBlocks/GameSounds.swift Tests/AudioTests.swift -o build/audio-tests
+./build/audio-tests
 ```
 
 The app is signed and installed on the connected iPhone 16 Pro. Device, simulator, and engine verification are recorded in `VALIDATION.md`.
