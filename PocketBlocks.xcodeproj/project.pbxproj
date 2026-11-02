@@ -1,0 +1,35 @@
+// !$*UTF8*$!
+{
+ archiveVersion = 1;
+ classes = {};
+ objectVersion = 56;
+ objects = {
+ A10000000000000000000001 = {isa = PBXProject; attributes = {BuildIndependentTargetsInParallel = YES; LastUpgradeCheck = 1600; TargetAttributes = {A10000000000000000000002 = {CreatedOnToolsVersion = 16.0; }; }; }; buildConfigurationList = A10000000000000000000003; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; hasScannedForEncodings = 0; knownRegions = (en, Base); mainGroup = A10000000000000000000004; productRefGroup = A10000000000000000000005; projectDirPath = ""; projectRoot = ""; targets = (A10000000000000000000002); };
+ A10000000000000000000002 = {isa = PBXNativeTarget; buildConfigurationList = A10000000000000000000006; buildPhases = (A10000000000000000000007, A10000000000000000000008, A10000000000000000000009); buildRules = (); dependencies = (); name = PocketBlocks; productName = PocketBlocks; productReference = A10000000000000000000010; productType = "com.apple.product-type.application"; };
+ A10000000000000000000003 = {isa = XCConfigurationList; buildConfigurations = (A10000000000000000000011, A10000000000000000000012); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+ A10000000000000000000006 = {isa = XCConfigurationList; buildConfigurations = (A10000000000000000000013, A10000000000000000000014); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+ A10000000000000000000004 = {isa = PBXGroup; children = (A10000000000000000000015, A10000000000000000000005); sourceTree = "<group>"; };
+ A10000000000000000000005 = {isa = PBXGroup; children = (A10000000000000000000010); name = Products; sourceTree = "<group>"; };
+ A10000000000000000000015 = {isa = PBXGroup; children = (A10000000000000000000016, A10000000000000000000017, A10000000000000000000018, A10000000000000000000025, A10000000000000000000019, A10000000000000000000020); path = PocketBlocks; sourceTree = "<group>"; };
+ A10000000000000000000010 = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PocketBlocks.app; sourceTree = BUILT_PRODUCTS_DIR; };
+ A10000000000000000000016 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PocketBlocksApp.swift; sourceTree = "<group>"; };
+ A10000000000000000000017 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameEngine.swift; sourceTree = "<group>"; };
+ A10000000000000000000018 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameView.swift; sourceTree = "<group>"; };
+ A10000000000000000000019 = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+ A10000000000000000000020 = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+ A10000000000000000000025 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameSounds.swift; sourceTree = "<group>"; };
+ A10000000000000000000026 = {isa = PBXBuildFile; fileRef = A10000000000000000000025; };
+ A10000000000000000000021 = {isa = PBXBuildFile; fileRef = A10000000000000000000016; };
+ A10000000000000000000022 = {isa = PBXBuildFile; fileRef = A10000000000000000000017; };
+ A10000000000000000000023 = {isa = PBXBuildFile; fileRef = A10000000000000000000018; };
+ A10000000000000000000024 = {isa = PBXBuildFile; fileRef = A10000000000000000000020; };
+ A10000000000000000000007 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (A10000000000000000000021, A10000000000000000000022, A10000000000000000000023, A10000000000000000000026); runOnlyForDeploymentPostprocessing = 0; };
+ A10000000000000000000008 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
+ A10000000000000000000009 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (A10000000000000000000024); runOnlyForDeploymentPostprocessing = 0; };
+ A10000000000000000000011 = {isa = XCBuildConfiguration; buildSettings = {CLANG_ENABLE_MODULES = YES; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SDKROOT = iphoneos; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; DEBUG_INFORMATION_FORMAT = dwarf; }; name = Debug; };
+ A10000000000000000000012 = {isa = XCBuildConfiguration; buildSettings = {CLANG_ENABLE_MODULES = YES; IPHONEOS_DEPLOYMENT_TARGET = 17.0; SDKROOT = iphoneos; SWIFT_COMPILATION_MODE = wholemodule; }; name = Release; };
+ A10000000000000000000013 = {isa = XCBuildConfiguration; buildSettings = {ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; CODE_SIGN_STYLE = Automatic; DEVELOPMENT_TEAM = Q4X2Q59C2D; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = PocketBlocks/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 17.0; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks"); MARKETING_VERSION = 1.0; PRODUCT_BUNDLE_IDENTIFIER = se.qpernil.PocketBlocks; PRODUCT_NAME = "$(TARGET_NAME)"; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SUPPORTS_MACCATALYST = NO; SWIFT_EMIT_LOC_STRINGS = YES; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = 1; }; name = Debug; };
+ A10000000000000000000014 = {isa = XCBuildConfiguration; buildSettings = {ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon; CODE_SIGN_STYLE = Automatic; DEVELOPMENT_TEAM = Q4X2Q59C2D; CURRENT_PROJECT_VERSION = 1; GENERATE_INFOPLIST_FILE = NO; INFOPLIST_FILE = PocketBlocks/Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 17.0; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks"); MARKETING_VERSION = 1.0; PRODUCT_BUNDLE_IDENTIFIER = se.qpernil.PocketBlocks; PRODUCT_NAME = "$(TARGET_NAME)"; SUPPORTED_PLATFORMS = "iphoneos iphonesimulator"; SUPPORTS_MACCATALYST = NO; SWIFT_EMIT_LOC_STRINGS = YES; SWIFT_VERSION = 5.0; TARGETED_DEVICE_FAMILY = 1; }; name = Release; };
+ };
+ rootObject = A10000000000000000000001;
+}
