@@ -19,6 +19,10 @@ The engine executable passed 3,728 checks in the recorded run; the total varies 
 - Simulator checks exercised rotation, animated fall, landing, pause/resume during a fall, and the accessible sound toggle. Muting remained in effect after termination and relaunch; re-enabling restored the On state.
 - Ambient audio mode respects Silent mode and mixes with other audio. Sounds are stopped when pausing, muting, or leaving the active app.
 
+## Continuous integration
+
+The repository includes a GitHub Actions workflow for standalone engine and audio checks, a simulator Release build, and an unsigned iPhone Release build. CI uses Xcode 27.1 on the standard Apple silicon runner. Audio validation inspects WAV structure, decoder compatibility, sample rate, channels, duration, clipping, non-silence, endpoints, and descending fall-whistle pitch without starting audio playback. The exact workflow check and build commands passed locally with Xcode 27.2 on 2 November 2026: 3,436 engine checks, 306 audio checks across 24 variants, and both Release builds. Hosted run results are available in the repository’s Actions tab.
+
 ## App and deployment
 
 - Debug simulator and signed iPhone builds succeeded.
