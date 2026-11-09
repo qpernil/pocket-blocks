@@ -14,6 +14,10 @@ The engine executable passed 3,728 checks in the recorded run; the total varies 
 
 ## Audio
 
+Audio execution uses one serial background queue on all supported iOS versions. Session configuration and activation, waveform generation, player creation and preparation, and playback and stopping stay off the main thread. Initialization is queued before playback commands; mute and stop commands retain their submission order. Queue preconditions guard preparation and the internal stop operations.
+
+Verification on 10 November 2026 with Xcode 27.2 and Swift 6.4.2 passed 306 audio checks across 24 variants, 3,076 engine checks, and a Debug simulator build. The audio code also passed Swift 6 complete concurrency checking with warnings treated as errors for both macOS and the iOS 17 deployment target. Runtime verification confirmed the absence of the reported UI-unresponsiveness warnings.
+
 - Generated six short effects and eighteen fall-whistle durations (0.11–0.28 seconds). All 24 PCM WAV variants decoded and prepared successfully with AVAudioPlayer, with matching duration, 44.1 kHz sample rate, and mono format.
 - The descending whistle follows the animation's quadratic progress. Its measured pitch decreased across four successive windows (approximately 2,129, 1,743, 1,143, and 629 Hz), without clipped samples or discontinuous start/end samples. The landing thump lasts 130 ms and is triggered by the actual lock event.
 - Simulator checks exercised rotation, animated fall, landing, pause/resume during a fall, and the accessible sound toggle. Muting remained in effect after termination and relaunch; re-enabling restored the On state.

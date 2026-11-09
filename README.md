@@ -30,7 +30,7 @@ A seven-piece shuffled bag supplies pieces. Rotations use a fixed pivot: four tu
 
 ## Source
 
-`GameEngine.swift` contains the independent board, collision, rotation, scoring, and timing logic. `GameView.swift` draws the board and translates touch gestures into game actions. `GameSounds.swift` generates and preloads short PCM effects using AVFoundation; it requires no downloaded audio assets. The app uses no third-party libraries and no backend.
+`GameEngine.swift` contains the independent board, collision, rotation, scoring, and timing logic. `GameView.swift` draws the board and translates touch gestures into game actions. `GameSounds.swift` generates and preloads short PCM effects using AVFoundation on a dedicated serial audio queue. Audio-session setup, player preparation, playback, and stopping run off the main thread; commands retain their submission order. It requires no downloaded audio assets. The app uses no third-party libraries and no backend.
 
 ## Check the engine
 

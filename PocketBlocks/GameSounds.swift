@@ -1,9 +1,11 @@
 import AVFoundation
 
 /// Original synthesized effects, prepared in memory for responsive playback.
-@MainActor final class GameSounds {
+/// All mutable state and AVFoundation calls are confined to `queue`. Public commands
+/// enqueue work without making the UI wait for audio-session or hardware operations.
+final class GameSounds: @unchecked Sendable {
     static let shared = GameSounds()
-    enum Effect: CaseIterable {
+    enum Effect: CaseIterable, Sendable {
         case rotate, land, clear, clearFour, start, gameOver
         var duration: Double {
             switch self {
@@ -17,15 +19,25 @@ import AVFoundation
         }
     }
 
+    private let queue = DispatchQueue(label: "se.qpernil.PocketBlocks.audio", qos: .userInitiated)
     private var enabled = UserDefaults.standard.object(forKey: "soundEnabled") as? Bool ?? true
     private var effects: [Effect: [AVAudioPlayer]] = [:]
     private var falls: [Int: AVAudioPlayer] = [:]
     private var activeFall: AVAudioPlayer?
 
     init() {
+        // Preparation precedes every subsequent command on this serial queue.
+        queue.async { self.prepare() }
+    }
+
+    private func prepare() {
+        dispatchPrecondition(condition: .onQueue(queue))
         #if os(iOS)
         // Game effects respect the Silent switch and mix with the user's music.
-        try? AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default)
+        let session = AVAudioSession.sharedInstance()
+        // Activation can block; use the audio queue on every supported iOS version.
+        try? session.setCategory(.ambient, mode: .default)
+        try? session.setActive(true)
         #endif
         for effect in Effect.allCases {
             let data = Self.effectData(effect)
@@ -45,34 +57,50 @@ import AVFoundation
     }
 
     func setEnabled(_ value: Bool) {
-        enabled = value
-        if !value { stopAll() }
+        queue.async {
+            self.enabled = value
+            if !value { self.stopAllOnQueue() }
+        }
     }
 
     func play(_ effect: Effect) {
-        guard enabled, let voices = effects[effect],
-              let player = voices.first(where: { !$0.isPlaying }) ?? voices.first else { return }
-        player.stop(); player.currentTime = 0
-        player.play()
+        queue.async {
+            guard self.enabled, let voices = self.effects[effect],
+                  let player = voices.first(where: { !$0.isPlaying }) ?? voices.first else { return }
+            player.stop(); player.currentTime = 0
+            player.play()
+        }
     }
 
     func playFall(duration: Double) {
-        stopFall()
-        guard enabled else { return }
-        let key = min(28, max(11, Int((duration * 100).rounded())))
-        guard let player = falls[key] else { return }
-        activeFall = player
-        player.currentTime = 0
-        player.play()
+        queue.async {
+            self.stopFallOnQueue()
+            guard self.enabled else { return }
+            let key = min(28, max(11, Int((duration * 100).rounded())))
+            guard let player = self.falls[key] else { return }
+            self.activeFall = player
+            player.currentTime = 0
+            player.play()
+        }
     }
 
     func stopFall() {
+        queue.async { self.stopFallOnQueue() }
+    }
+
+    func stopAll() {
+        queue.async { self.stopAllOnQueue() }
+    }
+
+    private func stopFallOnQueue() {
+        dispatchPrecondition(condition: .onQueue(queue))
         activeFall?.stop()
         activeFall = nil
     }
 
-    func stopAll() {
-        stopFall()
+    private func stopAllOnQueue() {
+        dispatchPrecondition(condition: .onQueue(queue))
+        stopFallOnQueue()
         for voices in effects.values { for player in voices { player.stop() } }
     }
 
