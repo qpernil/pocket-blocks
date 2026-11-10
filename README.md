@@ -6,6 +6,10 @@ A small native iPhone falling-block game built with SwiftUI. No dependencies, ac
 
 Developed by Per Nilsson with assistance from OpenAI Codex.
 
+<img src="docs/images/gameplay.png" alt="Pocket Blocks running with a falling yellow square, a landing outline, colorful stacked pieces, score bar, and touch controls." width="360">
+
+Gameplay on the iPhone 17e simulator.
+
 ## Run on iPhone
 
 1. Open `PocketBlocks.xcodeproj` in Xcode 15 or later.
