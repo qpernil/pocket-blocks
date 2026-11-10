@@ -8,6 +8,14 @@ import Foundation
             guard condition() else { fatalError(message) }
         }
         let game = GameEngine()
+        func visibleY() -> Double { Double(game.active!.y) + game.dropOffset }
+        func checkVisiblePieceFits() {
+            check(game.fits(game.active!), "Current grid position fits")
+            if game.isDropping && game.dropOffset > 0 {
+                var lower = game.active!; lower.y += 1
+                check(game.fits(lower), "Fractional falling cells do not overlap the row below")
+            }
+        }
         func dropAndLand() {
             game.drop()
             for _ in 0..<10 where game.isDropping { game.tick(0.05) }
@@ -157,13 +165,17 @@ import Foundation
         check(game.dropOffset > 0 && game.dropOffset < 1, "Fall begins with fractional row motion")
         game.tick(0.08)
         let midFall = game.dropOffset
-        check(midFall > 0 && midFall < Double(destination.y - origin.y), "Piece is visibly between start and landing")
+        let midPosition = visibleY()
+        check(midPosition > Double(origin.y) && midPosition < Double(destination.y), "Piece is visibly between start and landing")
         check(game.score == 0 && game.pieceID == animationID, "No scoring or spawning before landing")
-        check(!game.move(1) && !game.rotate(), "Flight locks horizontal movement and rotation")
+        check(game.move(1) && game.move(-1), "Horizontal movement stays available during fast fall")
+        for _ in 0..<4 { check(game.rotate(), "Rotation stays available during fast fall") }
+        check(abs(visibleY() - midPosition) < 0.000001, "Open-space movement and turns preserve vertical position")
         game.drop()
         check(game.dropOffset == midFall, "Repeated flick does not restart the fall")
         game.pause(); game.tick(0.1)
-        check(game.dropOffset == midFall && game.isDropping, "Pause freezes the fall")
+        check(!game.move(1) && !game.rotate(), "Pausing the game freezes movement and rotation during a fall")
+        check(game.dropOffset == midFall && visibleY() == midPosition && game.isDropping, "Pause freezes the fall")
         game.resume()
         for _ in 0..<10 where game.isDropping { game.tick(0.05) }
         check(!game.isDropping && game.dropOffset == 0, "Landing clears visual offset")
@@ -176,6 +188,110 @@ import Foundation
         let stackedLanding = game.ghost!
         dropAndLand()
         check(stackedLanding.occupied.allSatisfy { game.board[$0.y][$0.x] == 2 } && game.board[19][4] == 2, "Animated fall lands on a stack without tunneling")
+
+        // Input does not restart the acceleration clock or shorten the travelled distance.
+        game.start(); var steeringPiece = Piece(.t); steeringPiece.y = 0; game.active = steeringPiece
+        let originalDistance = game.ghost!.y - steeringPiece.y
+        game.drop()
+        let originalDuration = game.fastDropDuration
+        game.tick(0.08)
+        check(game.move(1) && game.rotate(), "Steering and turning both work mid-flight")
+        game.drop(); game.tick(0.04)
+        let expectedPosition = Double(originalDistance) * pow(0.12 / originalDuration, 2)
+        check(abs(visibleY() - expectedPosition) < 0.000001, "Moves, turns, and repeated drops cannot brake or restart descent")
+        check(game.fastDropDuration == originalDuration, "Input preserves the original acceleration timing")
+        let turnedLanding = game.ghost!
+        let turnedCells = turnedLanding.occupied
+        let turnedID = game.pieceID
+        for _ in 0..<20 where game.isDropping { game.tick(0.05) }
+        check(turnedCells.allSatisfy { game.board[$0.y][$0.x] == Tetromino.t.rawValue }, "Rotated piece locks at its updated projection")
+        check(game.score == (turnedLanding.y - steeringPiece.y) * 2 && game.pieceID == turnedID + 1,
+              "Steered, rotated drop scores its actual descent and spawns once")
+
+        // A fractional-height move must fit both rows the drawn cells overlap.
+        game.start(); var square = Piece(.o); square.y = 0; game.active = square
+        game.board[3][6] = 3
+        game.drop(); game.tick(game.fastDropDuration * sqrt(1.5 / 18))
+        check(abs(visibleY() - 1.5) < 0.000001, "Collision scenario reaches a fractional row")
+        var misleadingGridPosition = game.active!; misleadingGridPosition.x += 1
+        check(game.fits(misleadingGridPosition), "Integer-only collision test would miss the side obstacle")
+        check(!game.move(1), "Sideways movement cannot clip through a stack at fractional height")
+        check(game.move(-1), "Unobstructed movement remains available at the same height")
+        checkVisiblePieceFits()
+        game.start(); game.active = square; game.drop(); game.tick(0.05)
+        for _ in 0..<20 { game.move(-1) }
+        check(game.active!.occupied.map(\.x).min() == 0 && !game.move(-1), "Fast fall respects the left wall")
+        for _ in 0..<20 { game.move(1) }
+        check(game.active!.occupied.map(\.x).max() == 9 && !game.move(1), "Fast fall respects the right wall")
+
+        // Sliding off a high landing target extends the same accelerating flight.
+        game.start(); game.active = square
+        game.board[5][4] = 3; game.board[5][5] = 3
+        game.drop(); let shortDuration = game.fastDropDuration
+        game.tick(0.05)
+        check(game.move(1) && game.move(1), "Piece can steer away from the initial stack")
+        let deeperLanding = game.ghost!
+        game.tick(shortDuration - 0.05)
+        check(game.isDropping && game.score == 0 && abs(visibleY() - 3) < 0.000001,
+              "Passing the original target keeps falling without stopping or teleporting")
+        for _ in 0..<20 where game.isDropping { game.tick(0.05) }
+        check(deeperLanding.occupied.allSatisfy { game.board[$0.y][$0.x] == Tetromino.o.rawValue }, "Steering into a deeper lane reaches its floor")
+        check(game.score == 36 && game.board[5][4] == 3, "Deeper landing counts actual rows and preserves the old stack")
+
+        // A higher target stops the fall exactly on contact, even across a large tick.
+        game.start(); game.active = square
+        game.board[10][6] = 3; game.board[10][7] = 3
+        game.drop(); game.tick(0.08)
+        check(game.move(1) && game.move(1), "Piece can steer above a higher stack")
+        let higherLanding = game.ghost!
+        let higherID = game.pieceID
+        let higherLocks = game.lockEvent
+        for _ in 0..<3 where game.isDropping { game.tick(0.1) }
+        check(higherLanding.occupied.allSatisfy { game.board[$0.y][$0.x] == Tetromino.o.rawValue } && game.board[10][6] == 3,
+              "Changed landing target cannot be tunnelled through")
+        check(game.score == 16 && game.pieceID == higherID + 1 && game.lockEvent == higherLocks + 1,
+              "Higher landing scores and locks exactly once")
+
+        // Collisions use the current height, allowing a slide underneath an overhang.
+        game.start(); game.active = square; game.board[1][6] = 3
+        game.drop(); game.tick(0.1)
+        check(game.move(1), "A piece that has passed an overhang can move underneath it")
+        checkVisiblePieceFits()
+
+        game.start(); game.active = steeringPiece
+        game.drop(); game.tick(0.05)
+        let beforeBlockedTurn = game.active!
+        game.board = Array(repeating: Array(repeating: 3, count: 10), count: 20)
+        for cell in beforeBlockedTurn.occupied {
+            game.board[cell.y][cell.x] = 0
+            game.board[cell.y + 1][cell.x] = 0
+        }
+        for clockwise in [false, true] {
+            check(!game.rotate(clockwise: clockwise), "A blocked fast-fall rotation is rejected in either direction")
+            check(game.active!.occupied == beforeBlockedTurn.occupied, "Rejected turn preserves the falling piece")
+            checkVisiblePieceFits()
+        }
+
+        // Every shape can move and turn during flight without entering occupied cells.
+        for kind in Tetromino.allCases {
+            for _ in 0..<20 {
+                game.start(); game.active = Piece(kind)
+                for col in 0..<10 {
+                    // A legal resting board has no completed rows before this piece locks.
+                    let height = col == 0 ? 0 : Int.random(in: 0...8)
+                    for row in (20 - height)..<20 { game.board[row][col] = 3 }
+                }
+                game.drop()
+                for _ in 0..<100 where game.isDropping {
+                    game.move(Bool.random() ? 1 : -1)
+                    game.rotate(clockwise: Bool.random())
+                    checkVisiblePieceFits()
+                    game.tick(Double.random(in: 0.005...0.03))
+                }
+                check(!game.isDropping, "Steering and turning cannot hold a fast fall indefinitely")
+                check(game.board.count == 20 && game.board.allSatisfy { $0.count == 10 }, "Steered flight preserves board dimensions")
+            }
+        }
         // Random legal play should never corrupt board dimensions or create invalid active pieces.
         for _ in 0..<20 {
             game.start()

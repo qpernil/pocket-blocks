@@ -225,7 +225,7 @@ private enum Palette {
             control("arrow.right", label: "Move right") { game.move(1) }
             control("arrow.down.to.line", label: "Drop piece") { game.drop() }
         }
-        .disabled(game.phase != .playing || game.isDropping)
+        .disabled(game.phase != .playing)
         .opacity(game.phase == .playing ? 1 : 0.35)
     }
 
@@ -250,7 +250,7 @@ private enum Palette {
     private func touchControls(width: CGFloat) -> some Gesture {
         DragGesture(minimumDistance: 0)
             .onChanged { value in
-                guard game.phase == .playing, !game.isDropping else { return }
+                guard game.phase == .playing else { return }
                 if gesturePiece == nil { gesturePiece = game.pieceID }
                 guard gesturePiece == game.pieceID else { return }
                 let dx = value.translation.width
@@ -268,7 +268,7 @@ private enum Palette {
             }
             .onEnded { value in
                 defer { resetGesture() }
-                guard game.phase == .playing, !game.isDropping, gesturePiece == game.pieceID else { return }
+                guard game.phase == .playing, gesturePiece == game.pieceID else { return }
                 let dx = value.translation.width
                 let dy = value.translation.height
                 let flick = value.velocity.height > 350 || value.predictedEndTranslation.height - dy > 60

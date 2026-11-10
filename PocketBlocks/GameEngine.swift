@@ -53,10 +53,10 @@ struct Piece {
     var isDropping: Bool { fastDrop != nil }
     var fastDropDuration: Double { fastDrop?.duration ?? 0 }
     private struct FastDrop {
-        let landing: Piece
         let distance: Int
         let duration: Double
         var elapsed: Double = 0
+        var fallenRows = 0
     }
     private var fastDrop: FastDrop?
     private var bag: [Tetromino] = []
@@ -101,17 +101,17 @@ struct Piece {
     }
 
     @discardableResult func move(_ direction: Int) -> Bool {
-        guard phase == .playing, !isDropping, var piece = active else { return false }
+        guard phase == .playing, var piece = active else { return false }
         let grounded = isGrounded(piece)
         piece.x += direction
-        guard fits(piece) else { return false }
+        guard fitsAtCurrentHeight(piece) else { return false }
         active = piece
         resetLock(wasGrounded: grounded)
         return true
     }
 
     @discardableResult func rotate(clockwise: Bool = true) -> Bool {
-        guard phase == .playing, !isDropping, let original = active else { return false }
+        guard phase == .playing, let original = active else { return false }
         if original.kind == .o { return false }
         var rotated = original
         let edge = original.kind == .i ? 3 : 2
@@ -123,7 +123,7 @@ struct Piece {
                      Cell(x: -2, y: 0), Cell(x: 2, y: 0), Cell(x: 0, y: -1), Cell(x: 0, y: -2)] {
             var candidate = rotated
             candidate.x += kick.x; candidate.y += kick.y
-            if fits(candidate) {
+            if fitsAtCurrentHeight(candidate) {
                 active = candidate
                 resetLock(wasGrounded: isGrounded(original))
                 return true
@@ -141,12 +141,20 @@ struct Piece {
         return !fits(lower)
     }
 
+    private func fitsAtCurrentHeight(_ piece: Piece) -> Bool {
+        guard fits(piece) else { return false }
+        guard isDropping && dropOffset > 0 else { return true }
+        // Between rows, the visible cells overlap both adjacent grid positions.
+        var lower = piece; lower.y += 1
+        return fits(lower)
+    }
+
     func drop() {
         guard phase == .playing, !isDropping, let original = active, let landing = ghost else { return }
         let distance = max(0, landing.y - original.y)
         guard distance > 0 else { lock(); return }
         // Short drops stay snappy; a full-board fall remains easy to see.
-        fastDrop = FastDrop(landing: landing, distance: distance,
+        fastDrop = FastDrop(distance: distance,
                             duration: min(0.28, 0.10 + Double(distance) * 0.01))
     }
 
@@ -154,15 +162,28 @@ struct Piece {
         guard phase == .playing, var piece = active else { return }
         let dt = min(max(elapsed, 0), 0.1)
         if var drop = fastDrop {
+            let previous = drop.elapsed / drop.duration
             drop.elapsed += dt
-            let progress = min(1, drop.elapsed / drop.duration)
-            dropOffset = Double(drop.distance) * progress * progress
-            fastDrop = drop
-            if progress >= 1 {
-                active = drop.landing
+            let progress = drop.elapsed / drop.duration
+            // Preserve the accelerating trajectory even when steering changes the
+            // landing height. Input never resets elapsed time or slows the descent.
+            let travel = Double(drop.distance) * (progress * progress - previous * previous)
+            guard let landing = ghost else { return }
+            let remaining = Double(landing.y - piece.y) - dropOffset
+            if travel >= remaining {
+                drop.fallenRows += landing.y - piece.y
+                active = landing
                 fastDrop = nil; dropOffset = 0
-                score += drop.distance * 2
+                score += drop.fallenRows * 2
                 lock()
+            } else {
+                let offset = dropOffset + travel
+                let rows = Int(offset)
+                piece.y += rows
+                active = piece
+                dropOffset = offset - Double(rows)
+                drop.fallenRows += rows
+                fastDrop = drop
             }
             return
         }

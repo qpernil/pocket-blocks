@@ -22,7 +22,7 @@ For a simulator, select an installed iPhone simulator and press Run; no developm
 
 The 10-by-20 board fills the space between a compact score bar and the controls, with an eight-point side margin. Cell proportions adapt to the available screen space.
 
-- Drag anywhere on the board to move the falling piece left or right.
+- Drag anywhere on the board to move the falling piece left or right, including during a fast fall.
 - Tap the left half of the board to rotate counterclockwise, or the right half to rotate clockwise. Opposite turns undo one another in open space.
 - Flick downward for a quick animated fall to the outlined landing position. The drop button does the same. The piece settles before the next one appears.
 - The five buttons provide left movement, counterclockwise rotation, clockwise rotation, right movement, and fast drop, including VoiceOver labels.
@@ -30,7 +30,7 @@ The 10-by-20 board fills the space between a compact score bar and the controls,
 - Original synthesized sounds accompany turns, fast falls, landings, row clears, and game over. A fast fall uses an accelerating descending whistle followed by a landing thump. Toggle **Sound on / Sound off** on the start, pause, or game-over screen; the choice is saved. Effects respect the iPhone Silent switch and mix with other audio.
 - Pause with the top-right button. Leaving the app pauses automatically; resume when ready.
 
-A seven-piece shuffled bag supplies pieces. Rotations use a fixed pivot: four turns in either direction restore the same occupied cells and position in open space. Small wall and floor kicks may shift a piece when needed to fit. A short landing delay allows final adjustments, with a limit on resets. Fast falls take roughly 0.1–0.28 seconds depending on distance, accelerate smoothly, and pause with the game. Movement and rotation are held during the fall. Completed rows score 100/300/500/800 points times the level; a fast drop adds two points per row. The best score is saved locally. An interrupted game is not restored after the app is terminated.
+A seven-piece shuffled bag supplies pieces. Rotations use a fixed pivot: four turns in either direction restore the same occupied cells and position in open space. Small wall and floor kicks may shift a piece when needed to fit. A short landing delay allows final adjustments, with a limit on resets. Fast falls accelerate smoothly and usually take roughly 0.1–0.28 seconds, depending on the starting distance. Movement and rotation remain available, and the landing outline follows the adjusted piece. Steering into a deeper gap can extend the fall; it keeps accelerating until contact. Repeated drop inputs do not restart it. Pausing freezes the whole game. Completed rows score 100/300/500/800 points times the level; a fast drop adds two points per descended row. The best score is saved locally. An interrupted game is not restored after the app is terminated.
 
 ## Source
 

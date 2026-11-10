@@ -1,14 +1,15 @@
 # Validation
 
-Engine checks and builds verified on 1 November 2026 using Xcode 27.2 and Apple Swift 6.4.2. Audio checks were verified on 31 October 2026. Minimum deployment target: iOS 17.0.
+Engine, audio, and build checks verified on 10 November 2026 using Xcode 27.2 and Apple Swift 6.4.2. Minimum deployment target: iOS 17.0.
 
 ## Game logic
 
-The engine executable passed 3,728 checks in the recorded run; the total varies with randomized legal play.
+The engine executable passed 7,495 checks in the recorded run and passed ten consecutive runs, including randomized fast-fall steering on legal boards. The total varies with randomized legal play.
 
 - All seven piece types, in all four starting orientations, return to identical occupied cells and board coordinates after four rotations in either direction in open space. Opposite turns undo one another. Wall and floor adjustments remain allowed; accepted rotations stay within the board, and blocked rotations leave the piece unchanged.
-- Animated fast falls begin without moving the logical piece to its destination. Intermediate frames use fractional row offsets, with scoring, locking, and spawning deferred until landing.
-- A fall locks and scores once, ignores repeated drop requests, pauses and resumes, resets on restart, and lands on stacks without crossing occupied cells.
+- Animated fast falls begin at the current piece position. Intermediate frames track the current grid row and fractional row offset, with scoring, locking, and spawning deferred until landing.
+- Movement and rotation remain available during fast falls through both gestures and buttons. The original acceleration clock continues through input, including ordinary rotation kicks; repeated drop requests do not restart it. Fractional-height collision checks cover both adjacent grid rows, and the landing projection follows the current position and orientation.
+- A fall locks and scores actual descended rows once, pauses and resumes, resets on restart, and lands on higher stacks or deeper gaps without crossing occupied cells.
 - Difficulty reaches level 6 at the fiftieth cleared row and stays at 0.30 seconds per row even after many further clears. A timed simulation confirmed five rows of natural descent in 1.5 seconds at the cap. Play continues, and subsequent row clears retain the level-six scoring multiplier.
 - Seven-piece bag, side boundaries, landing projection, one through four simultaneous row clears, row collapse, scoring, level transitions, landing delay, top-out, pause/resume, restart, and randomized board invariants passed.
 
@@ -16,7 +17,7 @@ The engine executable passed 3,728 checks in the recorded run; the total varies 
 
 Audio execution uses one serial background queue on all supported iOS versions. Session configuration and activation, waveform generation, player creation and preparation, and playback and stopping stay off the main thread. Initialization is queued before playback commands; mute and stop commands retain their submission order. Queue preconditions guard preparation and the internal stop operations.
 
-Verification on 10 November 2026 with Xcode 27.2 and Swift 6.4.2 passed 306 audio checks across 24 variants, 3,076 engine checks, and a Debug simulator build. The audio code also passed Swift 6 complete concurrency checking with warnings treated as errors for both macOS and the iOS 17 deployment target. Runtime verification confirmed the absence of the reported UI-unresponsiveness warnings.
+Audio validation passed 306 checks across 24 variants. The audio code also passed Swift 6 complete concurrency checking with warnings treated as errors for both macOS and the iOS 17 deployment target. Runtime verification confirmed the absence of the reported UI-unresponsiveness warnings.
 
 - Generated six short effects and eighteen fall-whistle durations (0.11–0.28 seconds). All 24 PCM WAV variants decoded and prepared successfully with AVAudioPlayer, with matching duration, 44.1 kHz sample rate, and mono format.
 - The descending whistle follows the animation's quadratic progress. Its measured pitch decreased across four successive windows (approximately 2,129, 1,743, 1,143, and 629 Hz), without clipped samples or discontinuous start/end samples. The landing thump lasts 130 ms and is triggered by the actual lock event.
@@ -29,7 +30,7 @@ The repository includes a GitHub Actions workflow for standalone engine and audi
 
 ## App and deployment
 
-- Debug simulator and signed iPhone builds succeeded.
+- Debug simulator and unsigned iPhone Release builds passed. Fast-fall steering has not been independently verified on a physical device.
 - Installed and launched on the iPhone 17e simulator with iOS 27.2. Visually checked the expanded board, compact score bar, controls, piece preview, landing outline, and start overlay.
 - Exercised left-side and right-side taps on the simulator and visually confirmed counterclockwise and clockwise turns. Separate rotation buttons are visible and expose direction-specific accessibility labels.
 - Exercised downward flicks on the simulator and confirmed completed landings, scoring, and next-piece spawning. Animation progression and its timing were checked by engine regression tests.
